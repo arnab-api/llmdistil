@@ -7,6 +7,7 @@ from typing import Any, Callable, Literal, Optional, Union
 import baukit
 import src.utils.tokenizer_utils as tokenizer_utils
 import torch
+import numpy as np
 from mamba_minimal.model import Mamba
 from src import data
 from src.data import Relation
@@ -482,3 +483,11 @@ def get_h(
         for layer in layers
     }
     return h
+
+
+def detensorize_objects(obj):
+    obj_clone = copy.deepcopy(obj)
+    for key, value in obj_clone.__dict__.items():
+        if isinstance(value, torch.Tensor) or isinstance(value, np.ndarray):
+            setattr(obj_clone, key, value.tolist())
+    return obj_clone

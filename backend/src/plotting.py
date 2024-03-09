@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from mamba_minimal.model import Mamba
 from src.functional import guess_subject
-from src.tracing import calculate_hidden_flow
+from src.tracing import calculate_hidden_flow, IndirectEffect_from_tracing
 
 
 def get_color_map(kind):
@@ -22,22 +22,22 @@ def get_color_map(kind):
 from src.functional import decode_tokens
 
 
-def plot_trace_heatmap(result, savepdf=None, title=None, xlabel=None, modelname=None):
-    differences = result["scores"]
-    low_score = result["low_score"]
-    answer = result["answer"]
-    kind = (
-        None
-        if (not result["kind"] or result["kind"] == "None")
-        else str(result["kind"])
-    )
-    window = result.get("window", 10)
-    labels = list(result["input_tokens"])
-    alt_subject_tokens = (
-        None if "alt_subject" not in result else list(result["alt_subject"])
-    )
-    subject_start = result["subject_range"][0]
-    for i in range(*result["subject_range"]):
+def plot_trace_heatmap(
+    result: IndirectEffect_from_tracing,
+    savepdf=None,
+    title=None,
+    xlabel=None,
+    modelname=None,
+):
+    differences = result.scores
+    low_score = result.low_score
+    answer = result.answer
+    kind = None if (not result.kind or result.kind == "None") else str(result.kind)
+    window = result.window
+    labels = list(result.tokens)
+    alt_subject_tokens = None if result.alt_subject is None else result.alt_subject
+    subject_start = result.subject_range[0]
+    for i in range(*result.subject_range):
         if alt_subject_tokens is None:
             labels[i] = labels[i] + "*"
         else:

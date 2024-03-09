@@ -1,4 +1,5 @@
 """Some useful type aliases relevant to this project."""
+
 import pathlib
 from typing import Literal, Sequence
 
@@ -29,3 +30,5 @@ Layer = int | Literal["emb"] | Literal["ln_f"]
 # All strings are also Sequence[str], so we have to distinguish that we
 # mean lists or tuples of strings, or sets of strings, not other strings.
 StrSequence = list[str] | tuple[str, ...]
+
+Tensor = torch.Tensor | numpy.ndarray

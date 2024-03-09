@@ -19,6 +19,11 @@ from src.functional import (
 )
 from src.hooking.mamba import MambaBlock_Hook_Points, MambaBlockForwardPatcher
 from src.models import ModelandTokenizer
+from dataclasses import dataclass, fields
+from dataclasses_json import DataClassJsonMixin
+import numpy as np
+from typing import Literal
+from src.utils.typing import Tensor
 
 logger = logging.getLogger(__name__)
 
@@ -202,6 +207,49 @@ def replace_eos_with_pad(tokenizer, token_list, pad_token="[PAD]"):
     return token_list
 
 
+@dataclass(frozen=False)
+class IndirectEffect_from_tracing(DataClassJsonMixin):
+    scores: np.ndarray  # (Num Tokens, Num Layers) scores of the traced states
+    answer: str  # next token prediction by the model
+    high_score: float  # p(ans|subj)
+    low_score: float  # p(ans|alt_subj or corrupted subj)
+    tokens: list[str]  # prompt tokenized
+    subject_range: tuple[int, int]  # range of the subject in the prompt
+    window: Optional[int] = None  # window size for the traced states (if applicable)
+    kind: Optional[Literal["mlp", "attn"]] = (
+        None  # kind of module traced (if applicable)
+    )
+    alt_subject: Optional[list[str]] = None  # alt_subject tokenized (if applicable)
+
+    def __init__(
+        self,
+        scores: np.ndarray,
+        answer: str,
+        high_score: float,
+        low_score: float,
+        tokens: list[str],
+        subject_range: tuple[int, int],
+        window: Optional[int] = None,
+        kind: Optional[Literal["mlp", "attn"]] = None,
+        alt_subject: Optional[list[str]] = None,
+    ):
+        assert (
+            len(scores.shape) == 2
+        ), "scores should be a 2D array (Num Tokens, Num Layers)"
+        assert (
+            len(tokens) == scores.shape[0]
+        ), "tokens should have the same length as scores"
+        self.scores = scores
+        self.answer = answer
+        self.high_score = high_score
+        self.low_score = low_score
+        self.tokens = tokens
+        self.subject_range = subject_range
+        self.window = window
+        self.kind = kind
+        self.alt_subject = alt_subject
+
+
 def calculate_hidden_flow(
     mt: ModelandTokenizer,
     prompt: str,
@@ -322,24 +370,23 @@ def calculate_hidden_flow(
             token_range=token_range,
             mamba_block_hook=mamba_block_hook,
         )
-    differences = differences.detach().cpu()
-    indirect_effect = dict(
+    differences = differences.detach().cpu().numpy()
+
+    indirect_effects = IndirectEffect_from_tracing(
         scores=differences,
-        low_score=low_score,
-        high_score=base_score,
-        input_ids=inp["input_ids"][0],
-        input_tokens=replace_eos_with_pad(
+        low_score=low_score.item() if isinstance(low_score, Tensor) else low_score,
+        high_score=base_score.item() if isinstance(base_score, Tensor) else base_score,
+        tokens=replace_eos_with_pad(
             mt.tokenizer, list(decode_tokens(mt.tokenizer, inp["input_ids"][0]))
         ),
         subject_range=e_range,
         answer=answer,
         window=window,
-        correct_prediction=True,
         kind=(kind or mamba_block_hook) or "",
     )
 
     if alt_subject is not None:
-        indirect_effect["alt_subject"] = replace_eos_with_pad(
+        indirect_effects.alt_subject = replace_eos_with_pad(
             mt.tokenizer,
             list(
                 decode_tokens(
@@ -348,7 +395,7 @@ def calculate_hidden_flow(
             ),
         )
 
-    return indirect_effect
+    return indirect_effects
 
 
 def trace_important_states(
@@ -532,14 +579,6 @@ def patch_individual_layers_for_single_edit(
     )
 
 
-def detensorize_indirect_effects(indirect_effects):
-    hf = copy.deepcopy(indirect_effects)
-    for k in hf:
-        if isinstance(hf[k], torch.Tensor):
-            hf[k] = hf[k].item() if k == "high_score" else hf[k].cpu().numpy().tolist()
-    return hf
-
-
 def load_causal_traces(file="causal_traces.json"):
     with open(file, "r") as f:
         indirect_effect_collection = json.load(f)
@@ -588,7 +627,7 @@ def calculate_average_indirect_effects(
             alt_subject=alt_subject,
             **kwargs,
         )
-        indirect_effect_collection[sample.subject] = detensorize_indirect_effects(
+        indirect_effect_collection[sample.subject] = functional.detensorize_objects(
             indirect_effects
         )
 
