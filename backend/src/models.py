@@ -53,7 +53,7 @@ class ModelandTokenizer:
                 )
             tokenizer.pad_token = tokenizer.eos_token
             model.eval()
-            logger.info(
+            print(
                 f"loaded model <{model_path}> | size: {get_model_size(model) :.3f} MB | dtype: {torch_dtype} | device: {device}"
             )
             self.name = model_path
