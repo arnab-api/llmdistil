@@ -4,15 +4,11 @@
 
     export let attnMatrix = null;
     export let n_views = 3;
-    export let remove_prefix_pad = false;
-    export let selected_heads = null;
+    export let remove_prefix_pad = true;
+    export let selected_heads = [[5, 5], [8, 3], [11, 4]];
+    export let container;
 
-
-    let container;
-
-    $: console.log("attnMatrix", attnMatrix);
-
-    onMount(() => {
+    export async function update_attention_container(){
         if (!attnMatrix || attnMatrix.attention_matrices.length === 0) {
             console.error('Attention data is required');
             return;
@@ -23,9 +19,19 @@
             n_views,
             selected_heads
         );
+        container.innerHTML = "";
         container.appendChild(visualizationElement);
+    }
+
+    onMount(() => {
+        update_attention_container();
     });
 
+    $: console.log("attnMatrix", attnMatrix);
+    $: if (attnMatrix) {
+        console.log("updating vis with new prompt", attnMatrix);
+        update_attention_container();
+    }
 
     function visualize_multiple_attention(
         attention_mappings,

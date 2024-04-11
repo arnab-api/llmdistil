@@ -6,10 +6,6 @@ import baukit
 import torch
 import transformers
 
-# from mamba_ssm.models.mixer_seq_simple import MambaLMHeadModel as Mamba
-# use `mamba-simple`, the official implementation is to messy
-from mamba_minimal.model import Mamba
-
 # from mamba_ssm.ops.triton.layernorm import rms_norm_fn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -34,23 +30,17 @@ class ModelandTokenizer:
             self.name = model.config._name_or_path
         else:
             device = "cuda" if torch.cuda.is_available() else "cpu"
-            if "mamba" in model_path.lower():
-                model = Mamba.from_pretrained(model_path).to(torch_dtype).to("cuda")
-                tokenizer = AutoTokenizer.from_pretrained(
-                    "EleutherAI/gpt-neox-20b",  # Mamba was trained on the Pile with this exact tokenizer
-                )
-            else:
-                model, tokenizer = (
-                    AutoModelForCausalLM.from_pretrained(
-                        model_path,
-                        low_cpu_mem_usage=True,
-                        torch_dtype=torch_dtype,
-                    ).to(device),
-                    AutoTokenizer.from_pretrained(
-                        model_path,
-                        # padding_side='left'
-                    ),
-                )
+            model, tokenizer = (
+                AutoModelForCausalLM.from_pretrained(
+                    model_path,
+                    low_cpu_mem_usage=True,
+                    torch_dtype=torch_dtype,
+                ).to(device),
+                AutoTokenizer.from_pretrained(
+                    model_path,
+                    # padding_side='left'
+                ),
+            )
             tokenizer.pad_token = tokenizer.eos_token
             model.eval()
             print(
@@ -63,11 +53,7 @@ class ModelandTokenizer:
         self.model.eval()
         self.device = next(self.model.parameters()).device
 
-        (
-            self.parse_config()
-            if isinstance(model, Mamba)
-            else self.parse_config(model.config)
-        )
+        self.parse_config(model.config)
         self.cache_forwards()
 
     def parse_config(self, model_config=None) -> None:
@@ -80,37 +66,27 @@ class ModelandTokenizer:
             "final_layer_norm_name": None,
             "lm_head_name": None,
         }
-        if (
-            is_mamba_variant(self.model) or "mamba" in self.name.lower()
-        ):  # Not a Transformer
-            fields["n_layer"] = len(self.model.layers)
-            fields["n_embd"] = self.model.embedding.weight.shape[-1]
-            fields["layer_name_format"] = "layers.{}"
-            fields["embedder_name"] = "embedding"
-            fields["final_layer_norm_name"] = "norm_f"
-            fields["lm_head_name"] = "lm_head"
-        else:
-            fields["attn_module_name_format"] = None
-            fields["mlp_module_name_format"] = None
-            if is_llama_variant(self.model):
-                fields["n_layer"] = model_config.num_hidden_layers
-                fields["n_embd"] = model_config.hidden_size
-                fields["layer_name_format"] = "model.layers.{}"
-                fields["mlp_module_name_format"] = "model.layers.{}.mlp"
-                fields["attn_module_name_format"] = "model.layers.{}.self_attn"
-                fields["embedder_name"] = "model.embed_tokens"
-                fields["final_layer_norm_name"] = "model.norm"
-                fields["lm_head_name"] = "model.lm_head"
+        fields["attn_module_name_format"] = None
+        fields["mlp_module_name_format"] = None
+        if is_llama_variant(self.model):
+            fields["n_layer"] = model_config.num_hidden_layers
+            fields["n_embd"] = model_config.hidden_size
+            fields["layer_name_format"] = "model.layers.{}"
+            fields["mlp_module_name_format"] = "model.layers.{}.mlp"
+            fields["attn_module_name_format"] = "model.layers.{}.self_attn"
+            fields["embedder_name"] = "model.embed_tokens"
+            fields["final_layer_norm_name"] = "model.norm"
+            fields["lm_head_name"] = "model.lm_head"
 
-            elif is_gpt_variant(self.model):
-                fields["n_layer"] = model_config.n_layer
-                fields["n_embd"] = model_config.n_embd
-                fields["layer_name_format"] = "transformer.h.{}"
-                fields["mlp_module_name_format"] = "transformer.h.{}.mlp"
-                fields["attn_module_name_format"] = "transformer.h.{}.attn"
-                fields["embedder_name"] = "transformer.wte"
-                fields["final_layer_norm_name"] = "transformer.ln_f"
-                fields["lm_head_name"] = "transformer.lm_head"
+        elif is_gpt_variant(self.model):
+            fields["n_layer"] = model_config.n_layer
+            fields["n_embd"] = model_config.n_embd
+            fields["layer_name_format"] = "transformer.h.{}"
+            fields["mlp_module_name_format"] = "transformer.h.{}.mlp"
+            fields["attn_module_name_format"] = "transformer.h.{}.attn"
+            fields["embedder_name"] = "transformer.wte"
+            fields["final_layer_norm_name"] = "transformer.ln_f"
+            fields["lm_head_name"] = "transformer.lm_head"
 
         if fields["layer_name_format"] is not None and fields["n_layer"] is not None:
             fields["layer_names"] = [
@@ -146,32 +122,6 @@ class ModelandTokenizer:
         for name, module in self.model.named_modules():
             if hasattr(module, "forward"):
                 module.forward = self._module_forwards[name]
-
-
-# class FinalLayerNorm(torch.nn.Module):
-#     def __init__(self, ln_f: torch.nn.Module, mamba: bool = False):
-#         super().__init__()
-#         self.ln_f = ln_f
-#         self.mamba = mamba
-
-#     def forward(self, x: torch.Tensor, residual=Optional[torch.Tensor]):
-#         if self.mamba == False:
-#             return self.ln_f(untuple(x))
-#         else:
-#             if residual is None:
-#                 try:
-#                     x, residual = x
-#                 except:
-#                     raise ValueError("x must be a tuple of (x, residual)")
-#             return rms_norm_fn(
-#                 x=x,
-#                 weight=self.ln_f.weight,
-#                 bias=self.ln_f.bias,
-#                 eps=self.ln_f.eps,
-#                 residual=residual,
-#                 prenorm=False,
-#                 residual_in_fp32=self.ln_f.weight.dtype == torch.float32,
-#             )
 
 
 class LMHead(torch.nn.Module):
@@ -284,20 +234,6 @@ def is_llama_variant(mt: Model | ModelandTokenizer) -> bool:
     return False
 
 
-def is_mamba_variant(mt: Model | ModelandTokenizer) -> bool:
-    """Determine if model/tokenizer is GPT variant."""
-    if isinstance(mt, ModelandTokenizer):
-        mt = unwrap_model(mt)
-    return isinstance(mt, Mamba)
-
-
-def is_mamba_fast(mt: ModelandTokenizer) -> bool:
-    """Determine if model/tokenizer is GPT variant."""
-    if isinstance(mt, ModelandTokenizer):
-        mt = unwrap_model(mt)
-    return is_mamba_variant(mt) and hasattr(mt, "backbone")
-
-
 def any_parameter(model: ModelandTokenizer | Model) -> torch.nn.Parameter | None:
     """Get any example parameter for the model."""
     model = unwrap_model(model)
@@ -310,9 +246,6 @@ def determine_embedding_layer_path(model: ModelandTokenizer | Model) -> str:
         return "transformer.wte"
     elif isinstance(model, transformers.LlamaForCausalLM):
         return "model.embed_tokens"
-    elif isinstance(model, Mamba):
-        prefix = "backbone." if hasattr(model, "backbone") else ""
-        return prefix + "embedding"
     elif is_pythia_variant(model):
         return "gpt_neox.embed_in"
     else:
@@ -325,9 +258,6 @@ def determine_final_layer_norm_path(model: ModelandTokenizer | Model) -> str:
         return "transformer.ln_f"
     elif isinstance(model, transformers.LlamaForCausalLM):
         return "model.norm"
-    elif isinstance(model, Mamba):
-        prefix = "backbone." if hasattr(model, "backbone") else ""
-        return prefix + "norm_f"
     elif is_pythia_variant(model):
         return "gpt_neox.final_layer_norm"
     else:
@@ -340,8 +270,6 @@ def determine_lm_head_path(model: ModelandTokenizer | Model) -> str:
         return "lm_head"
     elif isinstance(model, transformers.LlamaForCausalLM):
         return "model.lm_head"
-    elif isinstance(model, Mamba):
-        return "lm_head"
     elif is_pythia_variant(model):
         return "embed_out"
     else:
@@ -357,12 +285,6 @@ def determine_layers(model: ModelandTokenizer | Model) -> tuple[int, ...]:
         model, transformers.GPTNeoXForCausalLM | transformers.LlamaForCausalLM
     ):
         n_layer = model.config.num_hidden_layers
-    elif isinstance(model, Mamba):
-        n_layer = (
-            len(model.backbone.layers)
-            if hasattr(model, "backbone")
-            else len(model.layers)
-        )
     else:
         n_layer = model.config.n_layer
 
@@ -437,9 +359,6 @@ def determine_layer_paths(
             layer_path = f"gpt_neox.layers.{layer_index}"
         elif isinstance(model, transformers.LlamaForCausalLM):
             layer_path = f"model.layers.{layer_index}"
-        elif isinstance(model, Mamba):
-            prefix = "backbone." if hasattr(model, "backbone") else ""
-            layer_path = prefix + f"layers.{layer_index}"
         else:
             layer_path = f"transformer.h.{layer_index}"
         layer_paths[layer] = layer_path
@@ -450,12 +369,6 @@ def determine_layer_paths(
 def determine_hidden_size(model: ModelandTokenizer | Model) -> int:
     """Determine hidden rep size for the model."""
     model = unwrap_model(model)
-
-    if isinstance(model, Mamba):
-        prefix = "backbone." if hasattr(model, "backbone") else ""
-        embed = baukit.get_module(model, prefix + "embedding")
-        return embed.weight.shape[-1]
-
     return model.config.hidden_size
 
 

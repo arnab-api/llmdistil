@@ -5,12 +5,9 @@ import re
 from typing import Any, Callable, Literal, Optional, Union
 
 import baukit
+import numpy as np
 import src.utils.tokenizer_utils as tokenizer_utils
 import torch
-import numpy as np
-from mamba_minimal.model import Mamba
-from src import data
-from src.data import Relation
 from src.models import ModelandTokenizer
 from src.utils.dataclasses import PredictedToken
 
@@ -35,25 +32,6 @@ def make_inputs(tokenizer, prompts, device="cuda"):
         #    position_ids=torch.tensor(position_ids).to(device),
         attention_mask=torch.tensor(attention_mask).to(device),
     )
-
-
-def predict_from_input(model, inp):
-    if isinstance(model, Mamba):
-        out = model(input_ids=inp["input_ids"])
-    else:
-        out = model(**inp)["logits"]
-    probs = torch.softmax(out[:, -1], dim=1)
-    p, preds = torch.max(probs, dim=1)
-    return preds, p
-
-
-def predict_token(mt, prompts, return_p=False):
-    inp = make_inputs(mt.tokenizer, prompts)
-    preds, p = predict_from_input(mt.model, inp)
-    result = [mt.tokenizer.decode(c) for c in preds]
-    if return_p:
-        result = (result, p)
-    return result
 
 
 def decode_tokens(tokenizer, token_array):
@@ -241,10 +219,6 @@ def predict_next_token(
             batch_inputs = {
                 "input_ids": inputs.input_ids[i : i + batch_size],
             }
-            if isinstance(mt.model, Mamba) == False:
-                batch_inputs["attention_mask"] = inputs.attention_mask[
-                    i : i + batch_size
-                ]
 
             batch_outputs = mt.model(**batch_inputs)
             logits = (
@@ -339,57 +313,6 @@ def make_icl_prompt(
     return prompt
 
 
-@torch.inference_mode()
-def filter_samples_by_model_knowledge(
-    mt: ModelandTokenizer, relation: Relation
-) -> Relation:
-    """Filter samples by model knowledge."""
-    logger.debug(f'"{relation.name}" | filtering with {mt.name}')
-
-    filtered_samples = []
-    for i in range(len(relation.samples)):
-        question, answer = relation[i]
-        predictions = predict_next_token(mt, question, k=5)[0]
-        top_pred = predictions[0]
-        is_known = is_nontrivial_prefix(prediction=top_pred.token, target=answer)
-        sample = relation.samples[i]
-        if is_known:
-            filtered_samples.append(sample)
-
-        logger.debug(
-            f"{sample.subject=} -> {answer=} | predicted = '{top_pred.token}'({top_pred.prob:.3f}) ==> ({get_tick_marker(is_known)})"
-        )
-
-    logger.info(
-        f'filtered relation "{relation.name}" to {len(filtered_samples)} samples (with {len(relation._few_shot_samples)}-shots)'
-    )
-
-    relation.samples = filtered_samples
-    return relation
-
-
-def random_edit_targets(
-    samples: list[data.Sample],
-) -> dict[data.Sample, data.Sample]:
-    """Pick random edit targets for each of the given samples.
-
-    If there are no other samples with different subject and different object,
-    then the sample is skipped.
-    """
-    targets = {}
-    for sample in samples:
-        others = [
-            x
-            for x in samples
-            if x.subject != sample.subject and x.object != sample.object
-        ]
-        if not others:
-            logger.debug(f"no valid edit target for {sample}, skipping")
-            continue
-        targets[sample] = random.choice(others)
-    return targets
-
-
 def untuple(x):
     if isinstance(x, tuple):
         return x[0]
@@ -464,9 +387,6 @@ def get_h(
     logger.debug(
         f"h_index={subj_last_idx} | h_token={mt.tokenizer.decode(tokenized['input_ids'][0][subj_last_idx])}"
     )
-
-    if isinstance(mt.model, Mamba):
-        tokenized.pop("attention_mask")
 
     retain_input = mode == "input"
     with baukit.TraceDict(
