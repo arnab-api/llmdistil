@@ -1,49 +1,67 @@
 <script>
-    import AttnVis from './AttnVis.svelte';
-    import {onMount} from 'svelte';
-	export let prompt = "A quick brown fox jumps over the lazy dog";
+    import AttnVis from "./AttnVis.svelte";
+    import { onMount } from "svelte";
+    import bufferingGif from '../assets/buffering.gif'
+
+    export let prompt = "A quick brown fox jumps over the lazy dog";
     export let attnMatrix = null;
+    export let attn_vis_container;
 
     export async function getAttnMatrix() {
         try {
+            attnMatrix = null;
+            attn_vis_container.innerHTML = `<img class="buffering-gif" src="${bufferingGif}" alt="Buffering..." />`;
             const response = await fetch(
-                "http://localhost:5050/attnmatrix?prompt=" + encodeURIComponent("<|endoftext|> " + prompt)
+                "http://10.200.205.169:5050/attnmatrix?prompt=" +
+                    encodeURIComponent("<|endoftext|> " + prompt)
             );
             if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
+                throw new Error(
+                    "Network response was not ok: " + response.statusText
+                );
             }
             const data = await response.json();
             attnMatrix = data;
-            console.log('Attention matrix:', attnMatrix);
-
+            console.log("Attention matrix:", attnMatrix);
         } catch (error) {
-            console.error('Failed to fetch attention matrix:', error);
+            console.error("Failed to fetch attention matrix:", error);
             attnMatrix = null;
         }
     }
     onMount(() => {
-		getAttnMatrix(prompt);
-	});
+        getAttnMatrix(prompt);
+    });
 
     function handleInput(event) {
         // Automatically resize textarea to fit content
-        event.target.style.height = 'auto';
+        event.target.style.height = "auto";
         event.target.style.height = `${event.target.scrollHeight}px`;
     }
 </script>
 
-<div class="outer-container">
-    <div class="input-section">
-        <textarea class="prompt-input" bind:value={prompt} on:input={handleInput} placeholder="Enter prompt"></textarea>
-    </div>
+<div class="prompt-and-control">
+    <textarea
+        class="prompt-input"
+        bind:value={prompt}
+        on:input={handleInput}
+        placeholder="Enter prompt"
+    ></textarea>
     <div class="button-container">
         <button class="action-button" on:click={getAttnMatrix}>Go</button>
     </div>
-    <AttnVis {attnMatrix} />
+
+    <div class="attn-vis-container">
+        <AttnVis {attnMatrix}
+            bind:attn_vis_container 
+        />
+    </div>
+
 </div>
 
+
+
 <style>
-    .outer-container {
+    .prompt-and-control {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -69,6 +87,7 @@
         display: flex;
         justify-content: center; /* Centers the button horizontally */
         width: 100%; /* Full width of the container */
+        padding-bottom: 1em;
     }
 
     .action-button {

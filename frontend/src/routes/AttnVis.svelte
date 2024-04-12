@@ -1,14 +1,17 @@
 <script>
     import * as d3 from 'd3';
     import {onMount} from 'svelte';
+    import bufferingGif from '../assets/buffering.gif'
 
     export let attnMatrix = null;
     export let n_views = 3;
     export let remove_prefix_pad = true;
     export let selected_heads = [[5, 5], [8, 3], [11, 4]];
-    export let container;
+    export let attn_vis_container;
+
 
     export async function update_attention_container(){
+        // container.innerHTML = `<img src="${bufferingGif}" alt="Buffering..." />`;
         if (!attnMatrix || attnMatrix.attention_matrices.length === 0) {
             console.error('Attention data is required');
             return;
@@ -19,8 +22,8 @@
             n_views,
             selected_heads
         );
-        container.innerHTML = "";
-        container.appendChild(visualizationElement);
+        attn_vis_container.innerHTML = "";
+        attn_vis_container.appendChild(visualizationElement);
     }
 
     onMount(() => {
@@ -198,16 +201,10 @@
                 )
             }
         }
-        console.log("main_container_div")
         return main_container_div.node();
     }
 </script>
 
-<div bind:this={container}>
-{#if attnMatrix}
-    <div id="main-container"></div>
-{:else}
-    <p>Loading...</p>
-{/if
-}
+<div bind:this={attn_vis_container}>
+
 </div>

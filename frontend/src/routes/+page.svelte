@@ -4,6 +4,7 @@
 
 	export let prompt = "A quick brown fox jumps over the lazy dog";
     export let attnMatrix = null;
+	export let attn_vis_container;
 </script>
 
 <div class="main"> 
@@ -11,6 +12,7 @@
 		<InputPrompt 
 			bind:prompt 
 			bind:attnMatrix
+			bind:attn_vis_container
 		/>
 	</div>
 </div>
@@ -37,6 +39,7 @@
 		/* place children next to each other */
 		display: flex;
 		gap: 2em;
+		/* background-color: #fffeda; */
 	}
 
 	.header {

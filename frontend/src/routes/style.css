@@ -62,3 +62,19 @@ h6 {
 #__next {
 	isolation: isolate;
 }
+
+
+.buffering-gif {
+    width: 8em;
+    height: 8em;
+    justify-content: center;
+    margin-top: 2em;
+}
+
+.attn-vis-container {
+    /* justify-content: left; */
+    /* margin-top: 2em; */
+    margin-left: 2em;
+    background-color: white;
+    /* border: 1px solid black;
+    border-radius: 5px; */
