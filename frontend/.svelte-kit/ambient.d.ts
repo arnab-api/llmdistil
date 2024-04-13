@@ -26,7 +26,6 @@
  * ```
  */
 declare module '$env/static/private' {
-	export const GJS_DEBUG_TOPICS: string;
 	export const CONDA_PROMPT_MODIFIER: string;
 	export const USER: string;
 	export const npm_config_user_agent: string;
@@ -35,8 +34,8 @@ declare module '$env/static/private' {
 	export const npm_node_execpath: string;
 	export const SHLVL: string;
 	export const npm_config_noproxy: string;
-	export const CHROME_DESKTOP: string;
 	export const HOME: string;
+	export const CHROME_DESKTOP: string;
 	export const CONDA_SHLVL: string;
 	export const OLDPWD: string;
 	export const LESS: string;
@@ -48,8 +47,8 @@ declare module '$env/static/private' {
 	export const ZSH: string;
 	export const LSCOLORS: string;
 	export const NVM_INC: string;
-	export const GNOME_SHELL_SESSION_MODE: string;
 	export const GTK_MODULES: string;
+	export const GNOME_SHELL_SESSION_MODE: string;
 	export const VSCODE_GIT_ASKPASS_MAIN: string;
 	export const PAGER: string;
 	export const PS1: string;
@@ -57,18 +56,18 @@ declare module '$env/static/private' {
 	export const VSCODE_GIT_ASKPASS_NODE: string;
 	export const npm_config_userconfig: string;
 	export const npm_config_local_prefix: string;
-	export const DBUS_SESSION_BUS_ADDRESS: string;
 	export const SYSTEMD_EXEC_PID: string;
+	export const DBUS_SESSION_BUS_ADDRESS: string;
 	export const P9K_TTY: string;
-	export const GIO_LAUNCHED_DESKTOP_FILE_PID: string;
 	export const LIBVIRT_DEFAULT_URI: string;
+	export const GIO_LAUNCHED_DESKTOP_FILE_PID: string;
 	export const COLORTERM: string;
 	export const _CE_M: string;
 	export const COLOR: string;
 	export const NVM_DIR: string;
 	export const MANDATORY_PATH: string;
-	export const GTK_IM_MODULE: string;
 	export const LOGNAME: string;
+	export const GTK_IM_MODULE: string;
 	export const CONDA_ROOT: string;
 	export const JOURNAL_STREAM: string;
 	export const _: string;
@@ -86,13 +85,13 @@ declare module '$env/static/private' {
 	export const WINDOWPATH: string;
 	export const npm_config_node_gyp: string;
 	export const PATH: string;
-	export const INVOCATION_ID: string;
 	export const SESSION_MANAGER: string;
+	export const INVOCATION_ID: string;
 	export const NODE: string;
 	export const npm_package_name: string;
-	export const GDK_BACKEND: string;
-	export const XDG_MENU_PREFIX: string;
 	export const XDG_RUNTIME_DIR: string;
+	export const XDG_MENU_PREFIX: string;
+	export const GDK_BACKEND: string;
 	export const DISPLAY: string;
 	export const LANG: string;
 	export const XDG_CURRENT_DESKTOP: string;
@@ -106,17 +105,16 @@ declare module '$env/static/private' {
 	export const LS_COLORS: string;
 	export const CONDA_PREFIX_2: string;
 	export const npm_lifecycle_script: string;
-	export const ORIGINAL_XDG_CURRENT_DESKTOP: string;
 	export const SSH_AGENT_LAUNCHER: string;
 	export const SSH_AUTH_SOCK: string;
+	export const ORIGINAL_XDG_CURRENT_DESKTOP: string;
 	export const CONDA_PYTHON_EXE: string;
 	export const SHELL: string;
 	export const npm_package_version: string;
 	export const npm_lifecycle_event: string;
-	export const GDMSESSION: string;
 	export const QT_ACCESSIBILITY: string;
+	export const GDMSESSION: string;
 	export const CONDA_DEFAULT_ENV: string;
-	export const GJS_DEBUG_OUTPUT: string;
 	export const GPG_AGENT_INFO: string;
 	export const P9K_SSH: string;
 	export const QT_IM_MODULE: string;
@@ -126,8 +124,8 @@ declare module '$env/static/private' {
 	export const npm_config_init_module: string;
 	export const PWD: string;
 	export const npm_execpath: string;
-	export const XDG_CONFIG_DIRS: string;
 	export const XDG_DATA_DIRS: string;
+	export const XDG_CONFIG_DIRS: string;
 	export const ZDOTDIR: string;
 	export const _P9K_TTY: string;
 	export const CONDA_EXE: string;
@@ -169,7 +167,6 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
-		GJS_DEBUG_TOPICS: string;
 		CONDA_PROMPT_MODIFIER: string;
 		USER: string;
 		npm_config_user_agent: string;
@@ -178,8 +175,8 @@ declare module '$env/dynamic/private' {
 		npm_node_execpath: string;
 		SHLVL: string;
 		npm_config_noproxy: string;
-		CHROME_DESKTOP: string;
 		HOME: string;
+		CHROME_DESKTOP: string;
 		CONDA_SHLVL: string;
 		OLDPWD: string;
 		LESS: string;
@@ -191,8 +188,8 @@ declare module '$env/dynamic/private' {
 		ZSH: string;
 		LSCOLORS: string;
 		NVM_INC: string;
-		GNOME_SHELL_SESSION_MODE: string;
 		GTK_MODULES: string;
+		GNOME_SHELL_SESSION_MODE: string;
 		VSCODE_GIT_ASKPASS_MAIN: string;
 		PAGER: string;
 		PS1: string;
@@ -200,18 +197,18 @@ declare module '$env/dynamic/private' {
 		VSCODE_GIT_ASKPASS_NODE: string;
 		npm_config_userconfig: string;
 		npm_config_local_prefix: string;
-		DBUS_SESSION_BUS_ADDRESS: string;
 		SYSTEMD_EXEC_PID: string;
+		DBUS_SESSION_BUS_ADDRESS: string;
 		P9K_TTY: string;
-		GIO_LAUNCHED_DESKTOP_FILE_PID: string;
 		LIBVIRT_DEFAULT_URI: string;
+		GIO_LAUNCHED_DESKTOP_FILE_PID: string;
 		COLORTERM: string;
 		_CE_M: string;
 		COLOR: string;
 		NVM_DIR: string;
 		MANDATORY_PATH: string;
-		GTK_IM_MODULE: string;
 		LOGNAME: string;
+		GTK_IM_MODULE: string;
 		CONDA_ROOT: string;
 		JOURNAL_STREAM: string;
 		_: string;
@@ -229,13 +226,13 @@ declare module '$env/dynamic/private' {
 		WINDOWPATH: string;
 		npm_config_node_gyp: string;
 		PATH: string;
-		INVOCATION_ID: string;
 		SESSION_MANAGER: string;
+		INVOCATION_ID: string;
 		NODE: string;
 		npm_package_name: string;
-		GDK_BACKEND: string;
-		XDG_MENU_PREFIX: string;
 		XDG_RUNTIME_DIR: string;
+		XDG_MENU_PREFIX: string;
+		GDK_BACKEND: string;
 		DISPLAY: string;
 		LANG: string;
 		XDG_CURRENT_DESKTOP: string;
@@ -249,17 +246,16 @@ declare module '$env/dynamic/private' {
 		LS_COLORS: string;
 		CONDA_PREFIX_2: string;
 		npm_lifecycle_script: string;
-		ORIGINAL_XDG_CURRENT_DESKTOP: string;
 		SSH_AGENT_LAUNCHER: string;
 		SSH_AUTH_SOCK: string;
+		ORIGINAL_XDG_CURRENT_DESKTOP: string;
 		CONDA_PYTHON_EXE: string;
 		SHELL: string;
 		npm_package_version: string;
 		npm_lifecycle_event: string;
-		GDMSESSION: string;
 		QT_ACCESSIBILITY: string;
+		GDMSESSION: string;
 		CONDA_DEFAULT_ENV: string;
-		GJS_DEBUG_OUTPUT: string;
 		GPG_AGENT_INFO: string;
 		P9K_SSH: string;
 		QT_IM_MODULE: string;
@@ -269,8 +265,8 @@ declare module '$env/dynamic/private' {
 		npm_config_init_module: string;
 		PWD: string;
 		npm_execpath: string;
-		XDG_CONFIG_DIRS: string;
 		XDG_DATA_DIRS: string;
+		XDG_CONFIG_DIRS: string;
 		ZDOTDIR: string;
 		_P9K_TTY: string;
 		CONDA_EXE: string;
