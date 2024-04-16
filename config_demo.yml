@@ -1,3 +1,4 @@
+model: "gpt2"
 APP:
     backend_url: "0.0.0.0"
     backend_port: 5050
