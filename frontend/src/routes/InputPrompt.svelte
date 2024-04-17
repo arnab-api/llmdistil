@@ -50,7 +50,6 @@
     ></textarea>
     <div class="controls">
         <div class="button-container">
-            &nbsp;&nbsp;
             <button class="action-button" on:click={getAttnMatrix}>Go</button>
         </div>
         <div class="nview-control">
