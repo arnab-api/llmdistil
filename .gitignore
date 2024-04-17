@@ -152,3 +152,4 @@ frontend/public/build/
 config.yml
 
 
+*.svelte-kit
