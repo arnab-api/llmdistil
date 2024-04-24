@@ -26,6 +26,7 @@
  * ```
  */
 declare module '$env/static/private' {
+	export const GJS_DEBUG_TOPICS: string;
 	export const CONDA_PROMPT_MODIFIER: string;
 	export const USER: string;
 	export const LANGUAGE: string;
@@ -118,6 +119,7 @@ declare module '$env/static/private' {
 	export const LC_MEASUREMENT: string;
 	export const GPG_AGENT_INFO: string;
 	export const LC_IDENTIFICATION: string;
+	export const GJS_DEBUG_OUTPUT: string;
 	export const P9K_SSH: string;
 	export const QT_IM_MODULE: string;
 	export const VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
@@ -171,6 +173,7 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
+		GJS_DEBUG_TOPICS: string;
 		CONDA_PROMPT_MODIFIER: string;
 		USER: string;
 		LANGUAGE: string;
@@ -263,6 +266,7 @@ declare module '$env/dynamic/private' {
 		LC_MEASUREMENT: string;
 		GPG_AGENT_INFO: string;
 		LC_IDENTIFICATION: string;
+		GJS_DEBUG_OUTPUT: string;
 		P9K_SSH: string;
 		QT_IM_MODULE: string;
 		VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;

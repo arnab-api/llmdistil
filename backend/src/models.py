@@ -33,7 +33,7 @@ class ModelandTokenizer:
             model, tokenizer = (
                 AutoModelForCausalLM.from_pretrained(
                     model_path,
-                    low_cpu_mem_usage=True,
+                    # low_cpu_mem_usage=True,
                     torch_dtype=torch_dtype,
                 ).to(device),
                 AutoTokenizer.from_pretrained(

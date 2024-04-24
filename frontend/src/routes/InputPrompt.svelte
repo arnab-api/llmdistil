@@ -2,6 +2,11 @@
     import AttnVis from "./AttnVis.svelte";
     import { onMount } from "svelte";
     import bufferingGif from "../assets/buffering.gif";
+    // import config from "../../../config.yml";
+
+    const backendUrl = "localhost"; // config.backend_access;
+    const backendPort = "5050"; //config.backend_port;
+    console.log(`Backend URL: ${backendUrl}:${backendPort}`);
 
     export let prompt = "A quick brown fox jumps over the lazy dog";
     export let attnMatrix = null;
@@ -14,7 +19,7 @@
             console.log("Fetching attention matrix for prompt:", prompt);
             attn_vis_container.innerHTML = `<img class="buffering-gif" src="${bufferingGif}" alt="Buffering..." />`;
             const response = await fetch(
-                "http://10.200.205.169:5050/attnmatrix?prompt=" +
+                `http://${backendUrl}:${backendPort}/attnmatrix?prompt=` +
                     encodeURIComponent("<|endoftext|> " + prompt)
             );
             if (!response.ok) {

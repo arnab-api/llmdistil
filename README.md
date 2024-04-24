@@ -1,6 +1,6 @@
 ## Instructions to host locally
 
-The backend and frontend need to be hosted separately. 
+The backend and frontend need to be hosted separately. First, create a `config.yml` file in the root directory following the template in `config_demo.yml`.
 
 ### Backend
 
@@ -10,6 +10,8 @@ flask==2.2.5
 flask-cors==4.0.0
 pytorch==2.1.2+cu121
 transformers==4.39.0.dev0
+dataclasses-json==0.6.4
+baukit==0.0.1
 ```
 
 Once all the dependencies are satisfied, you can run the backend by running the following command:
@@ -18,6 +20,8 @@ Once all the dependencies are satisfied, you can run the backend by running the 
 cd backend
 python app.py
 ```
+
+We tested the backend on Ubuntu 20.04.3 LTS with a A6000 GPU and CUDA 12.1. But a CPU should be able to easily handle a smaller model like `gpt2` or `gpt2-medium`.
 
 
 ### Frontend
@@ -36,6 +40,15 @@ npm install
 ```
 
 #### Running
+
+If you changed the `config.yml`, you will want to chage the following lines in [`frontend/src/routes/InputPrompt.svelte`](frontend/src/routes/InputPrompt.svelte):
+
+```javascript
+const backendUrl = "localhost"; 
+const backendPort = "5050"; 
+```
+
+Then run the following command to start the frontend:
 ```
 npm run dev -- --host --port 3333
 ```
