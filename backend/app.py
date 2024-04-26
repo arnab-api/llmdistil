@@ -12,6 +12,7 @@ from src.models import ModelandTokenizer
 ###################### INITIALIZATION ######################
 app = Flask(__name__)
 CORS(app)
+MODEL_LOCKED = False
 
 # Opens path to current file where the config is found, loads connfig
 PATH = os.path.dirname(os.path.abspath(__file__))
@@ -46,22 +47,33 @@ def hello():
     return str(random.randint(0, 100))
 
 
+def pool_for_attention_info(prompt):
+    global MODEL_LOCKED
+    while True:
+        if MODEL_LOCKED == True:
+            print(f"prompt={prompt[:min(len(prompt), 80)]}... is waiting for model")
+            continue
+        else:
+            MODEL_LOCKED = True
+            print(f"Processing request: {prompt[:min(len(prompt), 80)]}")
+            attention_information = get_attention_matrices(
+                prompt=prompt,
+                mt=MT,
+            )
+            MODEL_LOCKED = False
+            return attention_information
+
+
 @app.route("/attnmatrix")
 def attnmatrix():
     prompt = request.args.get("prompt")
     print(f"{prompt=}")
 
-    # return jsonify(
-    #     {
-    #         "prompt": prompt,
-    #         "matrix": [[random.random() for _ in range(5)] for _ in range(5)],
-    #     }
+    # attention_information = get_attention_matrices(
+    #     prompt=prompt,
+    #     mt=MT,
     # )
-
-    attention_information = get_attention_matrices(
-        prompt=prompt,
-        mt=MT,
-    )
+    attention_information = pool_for_attention_info(prompt)
 
     attention_information = detensorize_objects(attention_information)
     return jsonify(attention_information.to_dict())
